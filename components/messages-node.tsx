@@ -23,15 +23,21 @@ function MessageNode({ data }: any) {
         <div className=" bg-teal-500/10 py-[2px] px-1 flex items-center justify-between gap-2 w-full">
           <div className="flex gap-1 items-center">
             <Icon width={10} className="" icon="icon-park-solid:message" />
-
-            <p className=" text-[8px] font-medium">Send Message</p>
+            <p className=" text-[8px] font-medium">
+              {data.isHttpRequest ? "HTTP Request" : "Send Message"}
+            </p>
           </div>
           <div className="bg-white/10 rounded-full p-1">
-            <Icon width={10} icon="mingcute:whatsapp-fill" />
+            <Icon
+              width={10}
+              icon={data.isHttpRequest ? "fa-solid:server" : "mingcute:whatsapp-fill"}
+            />
           </div>
         </div>
         <div className="py-2 px-2">
-          <p className="text-[8px] font-normal text-white/50">{data.message}</p>
+          <p className="text-[8px] font-normal text-white/50">
+            {data.isHttpRequest ? data.url : data.message}
+          </p>
         </div>
       </div>
 
