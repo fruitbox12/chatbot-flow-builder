@@ -1,4 +1,6 @@
 /** @type {import('next').NextConfig} */
+const path = require("path"); // Import the 'path' module
+
 const nextConfig = {
     reactStrictMode: false, // Turn off React strict mode
     // TypeScript configuration
