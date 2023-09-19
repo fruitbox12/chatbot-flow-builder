@@ -1,5 +1,3 @@
-"use client";
-
 import React, { useState, useRef, useCallback, useEffect } from "react";
 import ReactFlow, {
   ReactFlowProvider,
@@ -18,37 +16,38 @@ import {
   initNodes,
   nodeTypes,
 } from "@/components/constants/WorkflowNodeConstants";
+import MessageNode from "@/components/MessageNode"; // Import the modified MessageNode component
 
 let id = 1;
 const getId = () => `${id++}`;
 
 export default function Homepage() {
-  //Reference for the flow wrapper
+  // Reference for the flow wrapper
   const reactFlowWrapper = useRef<any>(null);
 
-  //States provided by React Flow
+  // States provided by React Flow
   const [nodes, setNodes, onNodesChange] = useNodesState(initNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
   const [reactFlowInstance, setReactFlowInstance] = useState<any>(null);
 
-  //React State to store Saved Workflows
+  // React State to store Saved Workflows
   const [saved, setSaved] = useState<any>();
 
-  //React state to store the currently selected Node
+  // React state to store the currently selected Node
   const [selectedNode, setSelectedNode] = useState("");
 
-  //React State to store Messages
+  // React State to store Messages
   const [nodeMessages, setNodeMessages] = useState<any>([
     { id: "0", message: "Initial Node" },
   ]);
 
-  //Function to handle edge connections
+  // Function to handle edge connections
   const onConnect = useCallback(
     (params: any) => setEdges((eds) => addEdge(params, eds)),
     []
   );
 
-  //This function is called when there is a change in [nodeMessages, setNodes, selectedNode] values to
+  // This function is called when there is a change in [nodeMessages, setNodes, selectedNode] values to
   // recompute the Nodes when there is a change in any of the following states
   useEffect(() => {
     setNodes((nds) =>
@@ -66,7 +65,7 @@ export default function Homepage() {
     );
   }, [nodeMessages, setNodes, selectedNode]);
 
-  // This function acts to act as a connection between the nodeMessages Array and the state of the Nodes
+  // This function acts as a connection between the nodeMessages Array and the state of the Nodes
   const connectToMessage = (id: any) => {
     let message = "";
     nodeMessages.map((msg: any) => {
@@ -77,7 +76,7 @@ export default function Homepage() {
     return message;
   };
 
-  // This fucntion is used to filter the Messages Array when a Node is Deleted
+  // This function is used to filter the Messages Array when a Node is Deleted
   const onNodesDelete = useCallback(
     (deleted: any) => {
       let msgArray: any = [];
@@ -118,7 +117,7 @@ export default function Homepage() {
     const reactFlowBounds = reactFlowWrapper.current.getBoundingClientRect();
     const type = event.dataTransfer.getData("application/reactflow");
 
-    // check if the dropped element is valid
+    // Check if the dropped element is valid
     if (typeof type === "undefined" || !type) {
       return;
     }
@@ -132,19 +131,39 @@ export default function Homepage() {
     let msgArray: any = nodeMessages;
     msgArray.push({ id: id, message: message });
     setNodeMessages(msgArray);
-    const newNode = {
-      id: id,
-      type,
-      position,
-      data: {
-        id: id,
-        message: message,
-        selectedNode: selectedNode,
-        setSelectedNode: setSelectedNode,
-      },
-    };
 
-    setNodes((nds: any) => nds.concat(newNode));
+    // Create the node based on the type
+    let newNode: any = null;
+    if (type === "messageNode") {
+      newNode = {
+        id: id,
+        type: "messageNode",
+        position,
+        data: {
+          id: id,
+          message: message,
+          selectedNode: selectedNode,
+          setSelectedNode: setSelectedNode,
+        },
+      };
+    } else if (type === "httpRequestNode") {
+      // Modify this part according to your HTTP request node structure
+      newNode = {
+        id: id,
+        type: "httpRequestNode",
+        position,
+        data: {
+          id: id,
+          isHttpRequest: true,
+          url: "Your HTTP URL",
+          // Add other HTTP request properties here
+        },
+      };
+    }
+
+    if (newNode) {
+      setNodes((nds: any) => nds.concat(newNode));
+    }
   };
 
   const onDragStart = (event: any, nodeType: any) => {
@@ -216,7 +235,6 @@ export default function Homepage() {
     <>
       <div className="mx-5 md:mx-16">
         <div className="w-full mt-5 flex flex-col-reverse md:flex-row items-start justify-between gap-4 ">
-          {/* <Container> */}
           <div className="w-full md:w-8/12">
             <div className="w-full relative overflow-hidden rounded-[2.4rem] border border-transparent-white bg-[radial-gradient(ellipse_at_center,rgba(var(--feature-color),0.15),transparent)] py-6 px-8 before:pointer-events-none before:absolute before:inset-0 before:bg-glass-gradient md:rounded-[4.8rem] md:p-14">
               <ReactFlowProvider>
@@ -234,7 +252,11 @@ export default function Homepage() {
                     onInit={setReactFlowInstance}
                     onDrop={onDrop}
                     onDragOver={onDragOver}
-                    nodeTypes={nodeTypes}
+                    nodeTypes={{
+                      messageNode: MessageNode, // Use the MessageNode component
+                      httpRequestNode: MessageNode, // Use the MessageNode component for HTTP requests
+                      // Define other node types here
+                    }}
                     fitView
                     proOptions={{ hideAttribution: true }}
                   >
