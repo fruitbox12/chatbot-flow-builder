@@ -11,6 +11,10 @@ const nextConfig = {
       // Ignore ESLint errors during development
       ignoreDuringBuilds: true,
     },
+      webpack: (config) => {
+    config.resolve.alias["@"] = path.resolve(__dirname);
+    return config;
+  },
   };
   
 module.exports = nextConfig
