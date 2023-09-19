@@ -1,4 +1,4 @@
-'use client'
+"use client";
 import React, { useState, useRef, useCallback, useEffect } from "react";
 import ReactFlow, {
   ReactFlowProvider,
@@ -17,7 +17,6 @@ import {
   initNodes,
   nodeTypes,
 } from "@/components/constants/WorkflowNodeConstants";
-import MessageNode from "@/components/MessageNode"; // Import the modified MessageNode component
 
 let id = 1;
 const getId = () => `${id++}`;
@@ -132,39 +131,19 @@ export default function Homepage() {
     let msgArray: any = nodeMessages;
     msgArray.push({ id: id, message: message });
     setNodeMessages(msgArray);
-
-    // Create the node based on the type
-    let newNode: any = null;
-    if (type === "messageNode") {
-      newNode = {
+    const newNode = {
+      id: id,
+      type,
+      position,
+      data: {
         id: id,
-        type: "messageNode",
-        position,
-        data: {
-          id: id,
-          message: message,
-          selectedNode: selectedNode,
-          setSelectedNode: setSelectedNode,
-        },
-      };
-    } else if (type === "httpRequestNode") {
-      // Modify this part according to your HTTP request node structure
-      newNode = {
-        id: id,
-        type: "httpRequestNode",
-        position,
-        data: {
-          id: id,
-          isHttpRequest: true,
-          url: "Your HTTP URL",
-          // Add other HTTP request properties here
-        },
-      };
-    }
+        message: message,
+        selectedNode: selectedNode,
+        setSelectedNode: setSelectedNode,
+      },
+    };
 
-    if (newNode) {
-      setNodes((nds: any) => nds.concat(newNode));
-    }
+    setNodes((nds: any) => nds.concat(newNode));
   };
 
   const onDragStart = (event: any, nodeType: any) => {
@@ -231,59 +210,40 @@ export default function Homepage() {
     }
   };
   // Save Reset and Load Handlers End
+// Function to execute the workflow
+const executeWorkflow = async () => {
+  // Disable the button during execution
+  setIsExecuting(true);
 
-  return (
-    <>
-      <div className="mx-5 md:mx-16">
-        <div className="w-full mt-5 flex flex-col-reverse md:flex-row items-start justify-between gap-4 ">
-          <div className="w-full md:w-8/12">
-            <div className="w-full relative overflow-hidden rounded-[2.4rem] border border-transparent-white bg-[radial-gradient(ellipse_at_center,rgba(var(--feature-color),0.15),transparent)] py-6 px-8 before:pointer-events-none before:absolute before:inset-0 before:bg-glass-gradient md:rounded-[4.8rem] md:p-14">
-              <ReactFlowProvider>
-                <div
-                  className="w-full reactflow-wrapper h-[600px] rounded-2xl"
-                  ref={reactFlowWrapper}
-                >
-                  <ReactFlow
-                    nodes={nodes}
-                    edges={edges}
-                    onNodesChange={onNodesChange}
-                    onEdgesChange={onEdgesChange}
-                    onNodesDelete={onNodesDelete}
-                    onConnect={onConnect}
-                    onInit={setReactFlowInstance}
-                    onDrop={onDrop}
-                    onDragOver={onDragOver}
-                    nodeTypes={{
-                      messageNode: MessageNode, // Use the MessageNode component
-                      httpRequestNode: MessageNode, // Use the MessageNode component for HTTP requests
-                      // Define other node types here
-                    }}
-                    fitView
-                    proOptions={{ hideAttribution: true }}
-                  >
-                    <Controls />
-                  </ReactFlow>
-                </div>
-              </ReactFlowProvider>
-            </div>
-          </div>
+  // Iterate through nodes and perform HTTP requests
+  for (const node of nodes) {
+    if (node.type === "httpRequest") {
+      try {
+        // Make the HTTP request here
+        const response = await fetch(node.data.url, {
+          method: node.data.method,
+          // Add headers and body as needed
+        });
 
-          <div className="w-full md:w-4/12 ">
-            <SettingsPanel
-              selectedNode={selectedNode}
-              setSelectedNode={setSelectedNode}
-              nodeMessages={nodeMessages}
-              handleChangeMessage={handleChangeMessage}
-              saved={saved}
-              saveHandler={saveHandler}
-              onDragStart={onDragStart}
-              loadHandler={loadHandler}
-              resetHandler={resetHandler}
-            />
-          </div>
-        </div>
-      </div>
-      <ToastContainer />
-    </>
-  );
-}
+        // Check for success or handle errors
+        if (response.ok) {
+          // HTTP request was successful
+          const responseData = await response.json();
+          // Handle the response data as needed
+          console.log("HTTP request successful:", responseData);
+        } else {
+          // HTTP request failed, handle the error
+          console.error("HTTP request failed:", response.statusText);
+          // You can add additional error handling logic here
+        }
+      } catch (error) {
+        // An error occurred during the HTTP request
+        console.error("An error occurred during the HTTP request:", error);
+        // You can add additional error handling logic here
+      }
+    }
+  }
+
+  // Enable the button after execution
+  setIsExecuting(false);
+};
