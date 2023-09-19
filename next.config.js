@@ -1,7 +1,7 @@
 /** @type {import('next').NextConfig} */
 const path = require("path"); // Import the 'path' module
+module.exports = {
 
-const nextConfig = {
     reactStrictMode: false, // Turn off React strict mode
     // TypeScript configuration
     typescript: {
@@ -19,4 +19,3 @@ const nextConfig = {
   },
   };
   
-module.exports = nextConfig
